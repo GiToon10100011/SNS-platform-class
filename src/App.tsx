@@ -9,11 +9,16 @@ import Profile from "./routes/Profile";
 import CreateAccount from "./routes/CreateAccount";
 import Login from "./routes/Login";
 import LoadingScreen from "./components/LoadingScreen";
+import ProtectedRoute from "./routes/ProtectedRoute";
 
 const router = createBrowserRouter([
   {
     path: "/",
-    element: <Layout />,
+    element: (
+      <ProtectedRoute>
+        <Layout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         //경로가 없으면 Home

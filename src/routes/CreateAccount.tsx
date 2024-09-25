@@ -1,50 +1,12 @@
-import { createUserWithEmailAndPassword } from "firebase/auth";
+import { createUserWithEmailAndPassword, updateProfile } from "firebase/auth";
 import React, { useState } from "react";
 import { auth } from "../firebase";
 import styled from "styled-components";
+import authStyles from "../components/auth-styles";
+import { Link, useNavigate } from "react-router-dom";
+import { FirebaseError } from "firebase/app";
 
-const Wrapper = styled.div`
-  width: 420px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 10px;
-  margin: 0 auto;
-  padding: 50px 0;
-`;
-const Title = styled.h1`
-  font-size: 42px;
-`;
-const Form = styled.form`
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 14px;
-  margin-top: 30px;
-`;
-const Input = styled.input`
-  width: 100%;
-  padding: 10px 20px;
-  border: none;
-  border-radius: 50px;
-  font-size: 16px;
-  &[type="submit"] {
-    transition: all 0.3s;
-    cursor: pointer;
-    &:hover {
-      opacity: 0.8;
-    }
-  }
-  &:focus {
-    outline: none;
-  }
-`;
-
-const Error = styled.span`
-  font-weight: 600;
-  color: tomato;
-`;
+const { Wrapper, Title, Form, Input, Error, Switcher } = authStyles;
 
 const CreateAccount = () => {
   //데이터를 가져오는 도중에 오류가 발생했는지 확인
@@ -64,17 +26,32 @@ const CreateAccount = () => {
     else if (name === "password") setPassword(value);
   };
 
+  const navigate = useNavigate();
+
   const handleOnSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isLoading || name === "" || email === "" || password === "") return;
     //정상적으로 작동될때 실행되는 try
     try {
+      setIsLoading(true);
       //create an account
-      await createUserWithEmailAndPassword(auth, email, password);
+      const credentials = await createUserWithEmailAndPassword(
+        auth,
+        email,
+        password
+      );
       //set the name of the user
+      await updateProfile(credentials.user, {
+        displayName: name,
+        photoURL:
+          "//ecimg.cafe24img.com/pg1108b74246837003/tyler10034/YDH/%EC%97%BC%EC%B9%98.jpg",
+      });
+      navigate("/");
       // redirect to home page
+      //객체와 같은경우에는 Object 타입으로 지정은 할 수 있으나, 나중에 객체안에 중첩된 자료형의 자료가 바뀌어도 타입검사를 하지 않는 느슨함이 발생한다. 이때 interface || type을 통해 커스텀타입을 제작하여 타입을 정의하는것이 좋다 . 또한, type과는 달리 interface는 extends라는 확장성을 가진다 type은 간단한 문법이 장점으로, 함수의 타입을 정의할때 주로 사용된다.
     } catch (e) {
       //setError()
+      if (e instanceof FirebaseError) setError(e.message);
     } finally {
       setIsLoading(false);
     }
@@ -82,7 +59,7 @@ const CreateAccount = () => {
 
   return (
     <Wrapper>
-      <Title>Log into ⭐</Title>
+      <Title>Create Account ⭐</Title>
       <Form onSubmit={handleOnSubmit}>
         <Input
           onChange={handleOnChange}
@@ -114,6 +91,10 @@ const CreateAccount = () => {
         />
       </Form>
       {error !== "" ? <Error>{error}</Error> : null}
+      <Switcher>
+        Do you already have an account?
+        <Link to={"/login"}>Login &rarr;</Link>`
+      </Switcher>
     </Wrapper>
   );
 };
