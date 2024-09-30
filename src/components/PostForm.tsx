@@ -1,7 +1,8 @@
-import { addDoc, collection } from "firebase/firestore";
 import React, { useState } from "react";
+import { addDoc, collection, updateDoc } from "firebase/firestore";
+import { auth, db, storage } from "../firebase";
+import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
 import styled from "styled-components";
-import { auth, db } from "../firebase";
 
 const Form = styled.form`
   display: flex;
@@ -77,6 +78,10 @@ const PostForm = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [post, setPost] = useState("");
   const [file, setFile] = useState<File | null>(null);
+
+  //10mb 제한
+  const maxFileSize = 10 * 1024 * 1024;
+
   const handleOnChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setPost(e.target.value);
   };
@@ -84,21 +89,47 @@ const PostForm = () => {
     const {
       target: { files },
     } = e;
-    if (files && files.length === 1) setFile(files[0]);
+    if (files && files.length === 1) {
+      if (files[0].size > maxFileSize) {
+        alert("The maximum file size had been exceeded");
+        return;
+      }
+      setFile(files[0]);
+    }
   };
 
   const onPost = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const user = auth.currentUser;
+    console.log(user);
     if (!user || isLoading || post === "" || post.length > 200) return;
     try {
       setIsLoading(true);
-      await addDoc(collection(db, "contents"), {
+      const doc = await addDoc(collection(db, "contents"), {
         post,
         createdDate: Date.now(),
-        username: user?.displayName || "Anonymous",
+        username: user?.email?.split("@")[0] || "Anonymous",
         userId: user.uid,
       });
+      if (file) {
+        const locationRef = ref(storage, `contents/${user.uid}/${doc.id}`);
+        const result = await uploadBytes(locationRef, file);
+        const url = await getDownloadURL(result.ref);
+        const fileType = file.type;
+        if (fileType.startsWith("image/")) {
+          await updateDoc(doc, {
+            photo: url,
+          });
+        }
+        if (fileType.startsWith("video/")) {
+          await updateDoc(doc, {
+            video: url,
+          });
+        }
+      }
+      setPost("");
+      setFile(null);
+      // window.location.reload();
     } catch (e) {
       console.error(e);
     } finally {
@@ -114,6 +145,7 @@ const PostForm = () => {
         id=""
         value={post}
         placeholder="What is happening?"
+        required
       ></Textarea>
       <AttachFileBtn htmlFor="file">
         {file ? file.name : "Add File"}
