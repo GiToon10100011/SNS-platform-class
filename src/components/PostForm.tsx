@@ -108,7 +108,7 @@ const PostForm = () => {
       const doc = await addDoc(collection(db, "contents"), {
         post,
         createdDate: Date.now(),
-        username: user?.email?.split("@")[0] || "Anonymous",
+        username: user?.displayName || "Anonymous",
         userId: user.uid,
       });
       if (file) {
