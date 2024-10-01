@@ -1,4 +1,4 @@
-import React, { ChangeEvent, HTMLAttributes, useEffect, useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import { IPost } from "./TimeLine";
 import styled from "styled-components";
 import { auth, db, storage } from "../firebase";
@@ -131,15 +131,7 @@ const Payload = styled.p`
   margin: 10px 0;
 `;
 
-const Post = ({
-  postId,
-  createdDate,
-  photo,
-  post,
-  userId,
-  username,
-  video,
-}: IPost) => {
+const Post = ({ postId, photo, post, userId, username, video }: IPost) => {
   const user = auth.currentUser?.uid;
   const [isEditing, setIsEditing] = useState(false);
   const [editedPost, setEditedPost] = useState(post);
@@ -232,9 +224,9 @@ const Post = ({
         if (files[0].type.startsWith("image/")) {
           setCurrentPhoto(reader.result as string);
         } else {
-          alert("Wrong File Type.")
+          alert("Wrong File Type.");
           return;
-        };
+        }
       };
       reader.readAsDataURL(files[0]);
     }

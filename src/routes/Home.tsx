@@ -1,6 +1,3 @@
-import React, { useState } from "react";
-import { auth } from "../firebase";
-import { useNavigate } from "react-router-dom";
 import styled from "styled-components";
 import PostForm from "../components/PostForm";
 import TimeLine from "../components/TimeLine";
@@ -13,7 +10,6 @@ const Wrapper = styled.div`
 `;
 
 const Home = () => {
-  const navigate = useNavigate();
   return (
     <Wrapper>
       <PostForm />

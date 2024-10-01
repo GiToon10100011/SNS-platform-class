@@ -1,4 +1,4 @@
-import React, { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { auth, db, storage } from "../firebase";
 import styled from "styled-components";
 import { getDownloadURL, ref, uploadBytes } from "firebase/storage";
@@ -91,7 +91,7 @@ const Profile = () => {
       const file = files[0];
       const locationRef = ref(storage, `avatars/${user?.uid}`);
       const result = await uploadBytes(locationRef, file);
-      const avatarUrl = await getDownloadURL(locationRef);
+      const avatarUrl = await getDownloadURL(result.ref);
       await updateProfile(user, { photoURL: avatarUrl });
       setAvatar(avatarUrl);
     }

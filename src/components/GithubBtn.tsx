@@ -1,4 +1,3 @@
-import React from "react";
 import { GithubAuthProvider, signInWithPopup } from "firebase/auth";
 import { auth } from "../firebase";
 import styled from "styled-components";
